@@ -40,8 +40,9 @@ class BaseRouterHandler(BaseHandler):
 
         return count
 
-    def process_request(self, project_id, url):
+    def process_request(self, project_id, url, hostname):
         headers = self.request.headers
+        headers['Host'] = hostname
         body = self.request.body
 
         message = (
@@ -88,8 +89,12 @@ class BaseRouterHandler(BaseHandler):
             self._404()
             return
 
-        base_url = self.application.config.SENTRY_BASE_URL.replace('http://', '').replace('https://', '')
-        base_url = "%s://%s:%s@%s" % (self.request.protocol, sentry_key, sentry_secret, base_url)
+        base_url = self.application.config.SENTRY_BASE_URL
+        protocol = base_url.split(':')[0]
+        base_url = base_url.replace('http://', '').replace('https://', '')
+        hostname = base_url.split('/', 1)[0]
+        hostname = hostname.split(':', 1)[0] if ':' in hostname else hostname
+        base_url = "%s://%s:%s@%s" % (protocol, sentry_key, sentry_secret, base_url)
         url = "%s%s?%s" % (base_url, self.request.path, self.request.query)
 
         try:
@@ -111,7 +116,7 @@ class BaseRouterHandler(BaseHandler):
         self.set_header("X-CYCLOPS-STATUS", "PROCESSED")
         self.application.processed_items += 1
 
-        self.process_request(project_id, url)
+        self.process_request(project_id, url, hostname)
 
     def get_project_id(self, public_key, secret_key):
         for project_id, keys in self.application.project_keys.iteritems():
