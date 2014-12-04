@@ -99,13 +99,16 @@ class SendToSentryTask(object):
 
             project_id, method, headers, url, body = msg
 
-            config = {}
-            http_proxy = os.environ.get('http_proxy', os.environ.get('HTTP_PROXY'))
-            if http_proxy:
-                http_proxy = http_proxy.replace('http://', '').replace('https://', '')
-                config['proxy_host'], config['proxy_port'] = http_proxy.split(':', 1)
-                config['proxy_port'] = int(config['proxy_port'])
-            request = HTTPRequest(url=url, headers=headers, method=method, body=body, **config)
+            request_kwargs = {
+                'url': url,
+                'headers': headers,
+                'method': method,
+                'body': body,
+            }
+            if self.application.config.PROXY_HOST:
+                request_kwargs['proxy_host'] = self.application.config.PROXY_HOST
+                request_kwargs['proxy_port'] = int(self.application.config.PROXY_PORT)
+            request = HTTPRequest(**request_kwargs)
 
             logging.debug("Sending to sentry at %s", url)
             self.start_time = time.time()
