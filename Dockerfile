@@ -7,14 +7,10 @@ RUN apt-get update && \
     apt-get -y install git curl libcurl4-openssl-dev build-essential && \
     apt-get -y install python-dev python-pip python-virtualenv
 
-WORKDIR /opt
-RUN git clone -b proxy_and_host_header_fixes https://github.com/iserko/cyclops.git
-
+ADD . /opt/cyclops
 WORKDIR /opt/cyclops
-RUN virtualenv venv && \
-    . venv/bin/activate && \
-    venv/bin/python setup.py install
-
-ADD ./cyclops.conf /opt/cyclops/cyclops.conf
+ENV PYTHONPATH /opt/cyclops
+RUN pip install -r requirements.txt
 
 EXPOSE 9000
+CMD python -m cyclops.server -vv -b 0.0.0.0 -p 9000 -c cyclops.conf

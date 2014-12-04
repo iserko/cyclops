@@ -1,0 +1,9 @@
+tornado>=3.0.0
+derpconf==0.3.3
+pycurl==7.19.0
+requests==1.1.0
+ujson==1.30
+msgpack-python==0.3.0
+redis==2.7.2
+redis-lock==0.2.0
+argparse==1.2.1
